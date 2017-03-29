@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Tag!t</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_span_count">Grid Size</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string name="key_span_count">span_count</string>
+    <string name="select_all">Select All</string>
+    <string name="header_subtitle">v1.0</string>
+</resources>
