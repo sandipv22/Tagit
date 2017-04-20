@@ -2,18 +2,18 @@ package com.afterroot.photos.adapter;
 
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
-import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 
 import com.afterroot.photos.Helper;
 import com.afterroot.photos.R;
 import com.bumptech.glide.Glide;
-import com.transitionseverywhere.TransitionManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -118,25 +118,29 @@ public class ImagesRecyclerViewAdapter extends RecyclerView.Adapter<ImagesRecycl
     }
 
     public void selectAll(){
-        for (int i = 0; i < getItemCount(); i++){
-            mSelectedItems.put(i, true);
-            notifyItemChanged(i);
-        }
+        new Thread(() -> {
+            for (int i = 0; i < getItemCount(); i++){
+                mSelectedItems.put(i, true);
+                notifyDataSetChanged();
+            }
+        }).run();
     }
 
     public void clearSelection(){
-        List<Integer> selection = getSelectedItems();
         mSelectedItems.clear();
-        for (Integer i : selection){
-            notifyItemChanged(i);
-        }
+        notifyDataSetChanged();
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.layout_list_item, parent, false);
+                .inflate(R.layout.image_list_item, parent, false);
         return new ViewHolder(view);
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(ViewHolder holder) {
+        holder.clearAnim();
     }
 
     @Override
@@ -146,32 +150,36 @@ public class ImagesRecyclerViewAdapter extends RecyclerView.Adapter<ImagesRecycl
                 .centerCrop()
                 .crossFade()
                 .placeholder(new ColorDrawable(mContext.getResources().getColor(R.color.alter_album_background)))
+                .error(R.drawable.image_error)
                 .into(holder.mContentView);
-
-        holder.mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    mListener.onItemClick(holder.getAdapterPosition());
-                }
+        //setAnim(holder.container, position);
+        holder.mContentView.setOnClickListener(v -> {
+            if (null != mListener) {
+                mListener.onItemClick(holder.getAdapterPosition());
             }
         });
 
-        holder.mContentView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                return mListener != null && mListener.onItemLongClick(holder.getAdapterPosition());
-            }
-        });
+        holder.mContentView.setOnLongClickListener(v -> mListener != null && mListener.onItemLongClick(holder.getAdapterPosition()));
 
-        TransitionManager.beginDelayedTransition((ViewGroup) holder.container);
         int padding = 16;
         if (isSelected(position)){
             holder.mContentView.setPadding(padding, padding, padding, padding);
         } else {
             holder.mContentView.setPadding(0, 0, 0, 0);
         }
-        holder.mSelectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
+
+        holder.mChecked.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    public void setAnim(View view, int pos){
+        int lastPos = -1;
+        if (pos > lastPos){
+            ScaleAnimation scaleAnimation = new ScaleAnimation(0.5f, 1.0f, 0.5f, 1.0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+            scaleAnimation.setDuration(250);
+            view.startAnimation(scaleAnimation);
+            lastPos = pos;
+        }
     }
 
     @Override
@@ -180,17 +188,18 @@ public class ImagesRecyclerViewAdapter extends RecyclerView.Adapter<ImagesRecycl
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public final ImageView mContentView;
-        public final ImageView mSelectedOverlay;
+        public final ImageView mContentView, mChecked;
         public final View container;
-        public final AppCompatCheckBox mCheckBox;
 
         public ViewHolder(View view) {
             super(view);
             container = view.findViewById(R.id.image_container);
-            mContentView = (ImageView) view.findViewById(R.id.content);
-            mSelectedOverlay = (ImageView) view.findViewById(R.id.selected_overlay);
-            mCheckBox = (AppCompatCheckBox) view.findViewById(R.id.checkbox);
+            mContentView = (ImageView) view.findViewById(R.id.image);
+            mChecked = (ImageView) view.findViewById(R.id.image_checked);
+        }
+
+        public void clearAnim(){
+            container.clearAnimation();
         }
     }
 

@@ -13,4 +13,16 @@
     <string name="key_span_count">span_count</string>
     <string name="select_all">Select All</string>
     <string name="header_subtitle">v1.0</string>
+    <string name="title_activity_custom_fragment">CustomFragmentActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="tags">Tags</string>
+    <string name="key_fragment_title">fragmentTitle</string>
+
+    <string name="title_activity_image_viewer">ImageViewerActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="key_filter_tag">currentFilterTag</string>
+    <string name="key_fragment_id">fragmentId</string>
+    <string name="key_change_images_automatically">change_images_automatically</string>
+    <string name="photos_path">/AfterROOT/TagIt/</string>
 </resources>

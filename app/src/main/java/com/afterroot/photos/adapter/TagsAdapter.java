@@ -1,11 +1,14 @@
-package com.afterroot.photos;
+package com.afterroot.photos.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.afterroot.photos.R;
 
 import java.util.ArrayList;
 
@@ -46,12 +49,13 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
+
         holder.mTextTag.setText(getTagAtPos(holder.getAdapterPosition()));
-        holder.mDeleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mDeleteListener.onDeletePresssed(holder.getAdapterPosition());
-            }
+        holder.mDeleteButton.setOnClickListener(v -> mDeleteListener.onDeletePresssed(holder, holder.getAdapterPosition()));
+        holder.mItem.setOnClickListener(v -> mDeleteListener.onTagClicked(holder, holder.getAdapterPosition()));
+        holder.mItem.setOnLongClickListener(v -> {
+            mDeleteListener.onTagLongClick(holder, holder.getAdapterPosition());
+            return false;
         });
     }
 
@@ -60,18 +64,22 @@ public class TagsAdapter extends RecyclerView.Adapter<TagsAdapter.ViewHolder> {
         return mTagList.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView mTextTag;
         ImageButton mDeleteButton;
+        FrameLayout mItem;
         ViewHolder(View itemView) {
             super(itemView);
+            mItem = (FrameLayout) itemView.findViewById(R.id.item_tag);
             mTextTag = (TextView) itemView.findViewById(R.id.text_tag);
             mDeleteButton = (ImageButton) itemView.findViewById(R.id.button_delete_tag);
         }
     }
 
     public interface OnClickListener {
-        void onDeletePresssed(int position);
+        void onTagClicked(ViewHolder holder, int position);
+        void onTagLongClick(ViewHolder holder, int position);
+        void onDeletePresssed(ViewHolder holder, int position);
     }
 }

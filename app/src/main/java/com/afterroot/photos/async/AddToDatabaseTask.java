@@ -6,10 +6,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afterroot.photos.DatabaseHelper;
 import com.afterroot.photos.Helper;
@@ -24,25 +22,21 @@ import java.util.ArrayList;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.afterroot.photos.Helper.ADD_NOTI_ID;
 
-/**
- * Created by Sandip on 24-03-2017.
- */
-
 public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, String> {
     private String currentFileName;
     private NotificationCompat.Builder builder;
     private NotificationManager mNotificationManager;
-    private String tag = "Untagged";
+    private String tag;
     private MaterialDialog mProgressDialog;
     private int max = 0, curr = 0;
     private Context mContext;
     private Helper mHelper;
-    public OnPreExcuteListener mOnPreExcuteListener;
+    public TaskCallback mAddTaskCallback;
 
-    public AddToDatabaseTask(Context context, OnPreExcuteListener listener){
+    public AddToDatabaseTask(Context context, TaskCallback listener){
         this.mContext = context;
         this.mHelper = new Helper(mContext);
-        mOnPreExcuteListener = listener;
+        mAddTaskCallback = listener;
 
     }
 
@@ -57,12 +51,7 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
                 .progress(false, max, true)
                 .content("Please Wait...")
                 .negativeText("Cancel")
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        cancel(true);
-                    }
-                })
+                .onNegative((dialog, which) -> cancel(true))
                 .cancelable(false)
                 .build();
         mProgressDialog.show();
@@ -84,6 +73,9 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
         boolean error = false;
         max = arrayLists[0].size();
         mNotificationManager = (NotificationManager) mContext.getSystemService(NOTIFICATION_SERVICE);
+        ArrayList<String> dbImagePaths = mHelper.getImagePaths(tag, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext,
+                0, new Intent(mContext, MainActivity.class), PendingIntent.FLAG_NO_CREATE);
 
         for (int i = 0; i < max; i++){
             curr = i;
@@ -96,10 +88,10 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
             values.put(DatabaseHelper.TableColumns.COLUMN_NAME_PATH, sourceFile.getPath());
             values.put(DatabaseHelper.TableColumns.COLUMN_NAME_TAG, tag);
 
-            mHelper.getDatabase().insert(DatabaseHelper.TableColumns.TABLE_NAME_IMAGES, null, values);
+            if (!dbImagePaths.contains(sourcePath)) {
+                mHelper.getDatabase().insert(DatabaseHelper.TableColumns.TABLE_NAME_IMAGES, null, values);
+            }
 
-            PendingIntent pendingIntent = PendingIntent.getActivity(mContext,
-                    0, new Intent(mContext, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
             builder = new NotificationCompat.Builder(mContext)
                     .setSmallIcon(R.drawable.ic_action_add)
                     .setContentTitle("Adding...")
@@ -114,7 +106,11 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
         if (error){
             return "An Error Occurred.";
         } else {
-            if (tag != null && !tag.equals(" ") && !mHelper.getTags().contains(tag)){
+            if (tag != null
+                    && !tag.equals(" ")
+                    && !mHelper.getTags().contains(tag)
+                    && !tag.substring(tag.length()-1, tag.length()).endsWith(" ")
+                    ){
                 ContentValues tagsValues = new ContentValues();
                 tagsValues.put(DatabaseHelper.TableColumns.COLUMN_NAME_TAG, tag);
                 mHelper.getDatabase().insert(DatabaseHelper.TableColumns.TABLE_NAME_TAGS, null, tagsValues);
@@ -125,7 +121,7 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
 
     @Override
     protected void onPostExecute(String result) {
-        mOnPreExcuteListener.onTaskFinished();
+        mAddTaskCallback.onTaskFinished();
         mHelper.showToast(result);
         mProgressDialog.dismiss();
         mHelper.getDatabase().close();
@@ -133,7 +129,7 @@ public class AddToDatabaseTask extends AsyncTask<ArrayList<ImageEntry>, String, 
         super.onPostExecute(result);
     }
 
-    public interface OnPreExcuteListener {
+    public interface TaskCallback {
         public void onTaskFinished();
     }
 }

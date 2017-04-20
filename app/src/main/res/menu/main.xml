@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_span_count"
-          android:orderInCategory="102"
-          android:title="@string/action_span_count"
-          app:showAsAction="never"/>
+    <item android:id="@+id/selectAll"
+          android:title="@string/select_all"
+          android:visible="false"
+          app:showAsAction="ifRoom"
+          android:icon="@drawable/ic_action_select_all"/>
+    <group android:id="@+id/one">
+        <item android:id="@+id/action_tags"
+              android:title="Tags"
+              app:showAsAction="always"
+              android:icon="@drawable/ic_action_tag_light"/>
+        <item android:id="@+id/action_span_count"
+              android:title="@string/action_span_count"
+              app:showAsAction="never"/>
+        <item android:id="@+id/action_sortBy"
+              android:title="Sort By"
+              app:showAsAction="never"/>
+    </group>
 </menu>
