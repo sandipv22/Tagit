@@ -1,4 +1,4 @@
-package com.afterroot.photos.fragment;
+package com.afterroot.tagit.fragment;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -15,10 +15,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.afterroot.photos.DatabaseHelper;
-import com.afterroot.photos.Helper;
-import com.afterroot.photos.R;
-import com.afterroot.photos.adapter.TagsAdapter;
+import com.afterroot.tagit.DatabaseHelper;
+import com.afterroot.tagit.Helper;
+import com.afterroot.tagit.R;
+import com.afterroot.tagit.adapter.TagsAdapter;
 import com.transitionseverywhere.AutoTransition;
 import com.transitionseverywhere.TransitionManager;
 
@@ -97,13 +97,13 @@ public class TagsListFragment extends BottomSheetDialogFragment {
                         .title("Edit Tag")
                         .input("New tag", oldTag, false, (dialog, newTag) -> {
                             ContentValues contentValues = new ContentValues();
-                            contentValues.put(DatabaseHelper.TableColumns.COLUMN_NAME_TAG, newTag.toString());
+                            contentValues.put(DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG(), newTag.toString());
                             try {
-                                mHelper.getDatabase().update(DatabaseHelper.TableColumns.TABLE_NAME_TAGS, contentValues,
-                                        DatabaseHelper.TableColumns.COLUMN_NAME_TAG + "=?",
+                                mHelper.getDatabase().update(DatabaseHelper.TableColumns.Companion.getTABLE_NAME_TAGS(), contentValues,
+                                        DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG() + "=?",
                                         new String[]{mTagsAdapter.getTagAtPos(position)});
-                                mHelper.getDatabase().update(DatabaseHelper.TableColumns.TABLE_NAME_IMAGES, contentValues,
-                                        DatabaseHelper.TableColumns.COLUMN_NAME_TAG + "=?",
+                                mHelper.getDatabase().update(DatabaseHelper.TableColumns.Companion.getTABLE_NAME_IMAGES(), contentValues,
+                                        DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG() + "=?",
                                         new String[]{mTagsAdapter.getTagAtPos(position)});
                             } finally {
                                 mHelper.getDatabase().close();
@@ -147,10 +147,10 @@ public class TagsListFragment extends BottomSheetDialogFragment {
                 .positiveText("Yes")
                 .onPositive((dialog, which) -> {
                     try {
-                        mHelper.getDatabase().delete(DatabaseHelper.TableColumns.TABLE_NAME_TAGS,
-                                DatabaseHelper.TableColumns.COLUMN_NAME_TAG + "=?", new String[]{tag});
-                        mHelper.getDatabase().delete(DatabaseHelper.TableColumns.TABLE_NAME_IMAGES,
-                                DatabaseHelper.TableColumns.COLUMN_NAME_TAG + "=?", new String[]{tag});
+                        mHelper.getDatabase().delete(DatabaseHelper.TableColumns.Companion.getTABLE_NAME_TAGS(),
+                                DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG() + "=?", new String[]{tag});
+                        mHelper.getDatabase().delete(DatabaseHelper.TableColumns.Companion.getTABLE_NAME_IMAGES(),
+                                DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG() + "=?", new String[]{tag});
                         mTagsAdapter.notifyItemRemoved(position);
                         mTagsAdapter.getTagList().remove(position);
                         mOnClickEventListener.onTagDeleted();
@@ -173,8 +173,8 @@ public class TagsListFragment extends BottomSheetDialogFragment {
                     String tag = input.toString();
                     if (tag != null && !tag.equals("") && !mHelper.getTags().contains(tag)){
                         ContentValues tagsValues = new ContentValues();
-                        tagsValues.put(DatabaseHelper.TableColumns.COLUMN_NAME_TAG, tag);
-                        mHelper.getDatabase().insert(DatabaseHelper.TableColumns.TABLE_NAME_TAGS, null, tagsValues);
+                        tagsValues.put(DatabaseHelper.TableColumns.Companion.getCOLUMN_NAME_TAG(), tag);
+                        mHelper.getDatabase().insert(DatabaseHelper.TableColumns.Companion.getTABLE_NAME_TAGS(), null, tagsValues);
                     } else {
                         mHelper.showToast(tag + " already exists.");
                     }
@@ -201,7 +201,7 @@ public class TagsListFragment extends BottomSheetDialogFragment {
 
 
     public interface OnClickEventListener {
-        public void onTagClicked(String string);
-        public void onTagDeleted();
+    void onTagClicked(String string);
+        void onTagDeleted();
     }
 }

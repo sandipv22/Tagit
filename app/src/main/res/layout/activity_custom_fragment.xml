@@ -6,6 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/content_custom_fragment"
-    tools:context="com.afterroot.photos.CustomFragmentActivity">
+    tools:context="com.afterroot.tagit.CustomFragmentActivity">
 
 </android.support.constraint.ConstraintLayout>

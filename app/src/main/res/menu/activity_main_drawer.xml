@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/manage_tags"
-        android:icon="@drawable/ic_action_tags"
-        android:title="@string/tags"/>
-    <item
         android:id="@+id/settings"
         android:title="@string/action_settings"
         android:icon="@drawable/ic_action_settings"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#673ab7</color>
-    <color name="colorPrimaryDark">#512da8</color>
+    <color name="colorPrimary">#ffffff</color>
+    <color name="colorPrimaryDark">#e0e0e0</color>
     <color name="colorAccent">#0091ea</color>
     <color name="colorSelectedOverlay">#6c039be5</color>
     <color name="drawer_beader_background">#0277bd</color>
@@ -10,4 +10,8 @@
     <color name="black_overlay">#66000000</color>
     <color name="scrim_color">#45000000</color>
     <color name="white">#ffffff</color>
+    <color name="transparent_black">#34000000</color>
+    <color name="transparent_black_dark">#40000000</color>
+    <color name="blue_grey">#263238</color>
+    <color name="dark_blue_grey">#263238</color>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.afterroot.photos"
+<manifest package="com.afterroot.tagit"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.afterroot.tagit.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Launch">
             <intent-filter>
@@ -24,21 +24,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CustomFragmentActivity"
-            android:parentActivityName=".MainActivity">
+            android:name="com.afterroot.tagit.CustomFragmentActivity"
+            android:parentActivityName="com.afterroot.tagit.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.afterroot.photos.MainActivity"/>
+                android:value="com.afterroot.tagit.MainActivity"/>
         </activity>
         <activity
-            android:name=".ImageViewerActivity"
+            android:name="com.afterroot.tagit.ImageViewerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_image_viewer"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName="com.afterroot.tagit.MainActivity"
             android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.afterroot.photos.MainActivity"/>
+                android:value="com.afterroot.tagit.MainActivity"/>
         </activity>
     </application>
 
