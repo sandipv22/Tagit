@@ -1,33 +1,31 @@
 package com.afterroot.tagit
 
 import android.annotation.SuppressLint
-import android.app.Fragment
-import android.app.FragmentManager
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.support.design.widget.NavigationView
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.graphics.Palette
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.palette.graphics.Palette
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afterroot.tagit.adapter.ImagesRecyclerViewAdapter
+import com.afterroot.tagit.databinding.ActivityMainBinding
 import com.afterroot.tagit.fragment.MainFragment
 import com.afterroot.tagit.fragment.TagsListFragment
 import com.bumptech.glide.Glide
+import com.google.android.material.navigation.NavigationView
 import com.pascalwelsch.extensions.launchActivity
 import com.transitionseverywhere.Fade
 import com.transitionseverywhere.TransitionManager
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.app_bar_main.*
-import kotlinx.android.synthetic.main.nav_header_main.view.*
 import java.io.File
 import java.util.*
 
@@ -36,19 +34,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var mHelper: Helper
     private lateinit var mSharedPreferences: SharedPreferences
     private lateinit var mEditor: SharedPreferences.Editor
+    private lateinit var binding: ActivityMainBinding
 
     @SuppressLint("CommitPrefEdits")
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_NoActionBar)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.includeAppBar.toolbar)
 
         mHelper = Helper(this)
         mSharedPreferences = mHelper.sharedPreferences
         mEditor = mSharedPreferences.edit()
 
-        nav_view.setNavigationItemSelectedListener(this)
+        binding.navView.setNavigationItemSelectedListener(this)
 
         init()
     }
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var mFragmentManager: FragmentManager? = null
     private fun setFragment(fragment: Fragment) {
         if (mFragmentManager == null){
-            mFragmentManager = fragmentManager
+            mFragmentManager = supportFragmentManager
         }
         mFragmentManager!!.beginTransaction().replace(R.id.main_fragment, fragment).commit()
     }
@@ -89,31 +89,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 val randomId = Random().nextInt(mAdapter.itemCount)
                 val randomPath = mAdapter.getPath(randomId)
 
-                scrim_image!!.setOnClickListener { startImageViewerAt(randomId) }
+                binding.includeAppBar.scrimImage.setOnClickListener { startImageViewerAt(randomId) }
 
                 val bitmap = BitmapFactory.decodeFile(randomPath)!!
                 Palette.from(bitmap).generate { palette ->
                     try {
-                        val swatch = checkVibrantSwatch(palette)
+                        val swatch = palette?.let { checkVibrantSwatch(it) }
                         val paletteColor: Int
                         if (swatch != null) {
                             paletteColor = swatch.rgb
-                            toolbar_layout.setBackgroundColor(paletteColor)
+                            binding.includeAppBar.toolbarLayout.setBackgroundColor(paletteColor)
                             val color = palette.getVibrantColor(paletteColor)
-                            drawer_layout.header_root.setBackgroundColor(color)
+                            binding.navView.getHeaderView(0).setBackgroundColor(color)
                         }
                     } catch (n: NullPointerException) {
                         n.printStackTrace()
                     }
                 }
                 handler.post {
-                    scrim_image.visibility = View.INVISIBLE
-                    TransitionManager.beginDelayedTransition(toolbar_layout, Fade(Fade.OUT))
-                    scrim_image.visibility = View.VISIBLE
+                    binding.includeAppBar.scrimImage.visibility = View.INVISIBLE
+                    TransitionManager.beginDelayedTransition(binding.includeAppBar.toolbarLayout, Fade(Fade.OUT))
+                    binding.includeAppBar.scrimImage.visibility = View.VISIBLE
                     try {
                         Glide.with(this)
                                 .load(File(randomPath))
-                                .into(scrim_image)
+                                .into(binding.includeAppBar.scrimImage)
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun stopScrimTask() {
-        scrim_image!!.setImageDrawable(null)
+        binding.includeAppBar.scrimImage.setImageDrawable(null)
         if (mTimer != null) {
             mTimer!!.cancel()
         }
@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fragment1.show(supportFragmentManager, "tag")
         fragment1.setOnClickEventListener(object : TagsListFragment.OnClickEventListener {
             override fun onTagClicked(string: String) {
-                Log.d("tag", "Tag Set: " + string)
+                Log.d("tag", "Tag Set: $string")
                 mainFragment.loadToGrid()
             }
 
@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
-        drawer_layout.closeDrawer(GravityCompat.START)
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
 

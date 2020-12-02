@@ -1,7 +1,6 @@
 package com.afterroot.tagit.adapter
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
 import android.util.SparseBooleanArray
 import android.view.LayoutInflater
 import android.view.View
@@ -9,15 +8,14 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.ScaleAnimation
 import android.widget.ImageView
-import com.afterroot.tagit.Helper
+import androidx.recyclerview.widget.RecyclerView
 import com.afterroot.tagit.R
 import com.bumptech.glide.Glide
-import kotlinx.android.synthetic.main.image_list_item.view.*
+import org.jetbrains.anko.find
 import java.util.*
 
 class ImagesRecyclerViewAdapter(private val mContext: Context, val values: ArrayList<String>, private val mListener: OnItemInteractionListener?) : RecyclerView.Adapter<ImagesRecyclerViewAdapter.ViewHolder>() {
     private val mSelectedItems: SparseBooleanArray = SparseBooleanArray()
-    private val mHelper: Helper = Helper(mContext)
 
     fun clear() {
         values.clear()
@@ -47,10 +45,10 @@ class ImagesRecyclerViewAdapter(private val mContext: Context, val values: Array
     }
 
     fun removeItems(positions: MutableList<Int>) {
-        Collections.sort(positions) { lhs, rhs -> rhs!! - lhs!! }
+        positions.sortWith { lhs, rhs -> rhs!! - lhs!! }
 
         // Split the list in ranges
-        while (!positions.isEmpty()) {
+        while (positions.isNotEmpty()) {
             if (positions.size == 1) {
                 removeItem(positions[0])
                 positions.removeAt(0)
@@ -109,8 +107,8 @@ class ImagesRecyclerViewAdapter(private val mContext: Context, val values: Array
         return ViewHolder(view)
     }
 
-    override fun onViewDetachedFromWindow(holder: ViewHolder?) {
-        holder!!.clearAnim()
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.clearAnim()
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -152,12 +150,11 @@ class ImagesRecyclerViewAdapter(private val mContext: Context, val values: Array
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val mContentView: ImageView
         val mChecked: ImageView
-        val container: View
+        val container: View = view.findViewById(R.id.image_container)
 
         init {
-            container = view.findViewById(R.id.image_container)
             mChecked = view.findViewById<View>(R.id.image_checked) as ImageView
-            mContentView = view.image
+            mContentView = container.find(R.id.image)
         }
 
         fun clearAnim() {

@@ -2,24 +2,24 @@ package com.afterroot.tagit.fragment
 
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
-import android.app.Fragment
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.graphics.drawable.DrawerArrowDrawable
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afterroot.tagit.Helper
 import com.afterroot.tagit.R
@@ -28,41 +28,40 @@ import com.afterroot.tagit.adapter.ImagesRecyclerViewAdapter
 import com.afterroot.tagit.adapter.ImagesRecyclerViewAdapter.OnItemInteractionListener
 import com.afterroot.tagit.async.AddToDatabaseTask
 import com.afterroot.tagit.async.DeleteFromDatabaseTask
+import com.afterroot.tagit.databinding.FragmentMainBinding
+import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.nineoldandroids.animation.ObjectAnimator
-import com.pluscubed.recyclerfastscroll.RecyclerFastScroller
 import com.transitionseverywhere.Fade
 import com.transitionseverywhere.TransitionManager
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.app_bar_main.*
-import kotlinx.android.synthetic.main.fragment_main.*
-import kotlinx.android.synthetic.main.fragment_main.view.*
 import net.yazeed44.imagepicker.model.ImageEntry
 import net.yazeed44.imagepicker.util.Picker
+import org.jetbrains.anko.find
 import java.util.*
 
-class MainFragment : Fragment(), OnItemInteractionListener {
+class MainFragment : androidx.fragment.app.Fragment(), OnItemInteractionListener {
 
     private var mHelper: Helper? = null
     private var mSharedPreferences: SharedPreferences? = null
     private lateinit var mEditor: SharedPreferences.Editor
     var isInSelectionMode: Boolean = false
     private lateinit var mContext: Context
-    private lateinit var mFragmentView: View
     private var mArrowDrawable: DrawerArrowDrawable? = null
     private lateinit var mCallbacks: MainFragmentCallbacks
+    private lateinit var binding: FragmentMainBinding
+    private var fab: FloatingActionButton? = null
 
     fun setCallbacks(callbacks: MainFragmentCallbacks) {
         mCallbacks = callbacks
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view = inflater!!.inflate(R.layout.fragment_main, container, false)
-        mFragmentView = view
-        mHelper = Helper(activity)
-        mContext = activity
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = FragmentMainBinding.inflate(inflater, container, false)
+        mHelper = Helper(requireContext())
+        mContext = requireContext()
         Log.d("TEST", "TEST")
         setUpThings()
-        return view
+        return binding.root
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -70,11 +69,11 @@ class MainFragment : Fragment(), OnItemInteractionListener {
         mSharedPreferences = mHelper?.sharedPreferences
         mEditor = mSharedPreferences!!.edit()
 
-        mFragmentView.swipeRefresh.setOnRefreshListener({ this.loadToGrid() })
+        binding.swipeRefresh.setOnRefreshListener { this.loadToGrid() }
 
         val toggle = ActionBarDrawerToggle(
-                activity, activity.drawer_layout, activity.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        activity.drawer_layout.addDrawerListener(toggle)
+                activity, activity?.find(R.id.drawer_layout), activity?.find(R.id.toolbar), R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        activity?.find<DrawerLayout>(R.id.drawer_layout)?.addDrawerListener(toggle)
         toggle.syncState()
 
         mArrowDrawable = toggle.drawerArrowDrawable
@@ -84,28 +83,34 @@ class MainFragment : Fragment(), OnItemInteractionListener {
     }
 
     private fun setFabAsAdd() {
-        activity.fab.setImageResource(R.drawable.ic_action_add)
-        activity.fab.setOnClickListener {
-            Picker.Builder(
-                    mContext, ImagePickListener(), R.style.Picker)
-                    .setBackBtnInMainActivity(true)
-                    .disableCaptureImageFromCamera()
-                    .build()
-                    .startActivity()
+        fab = activity?.find(R.id.fab)!!
+        fab?.apply {
+            setImageResource(R.drawable.ic_action_add)
+            setOnClickListener {
+                Picker.Builder(
+                        mContext, ImagePickListener(), R.style.Picker)
+                        .setBackBtnInMainActivity(true)
+                        .disableCaptureImageFromCamera()
+                        .build()
+                        .startActivity()
+            }
         }
     }
 
     private fun setFabAsRemove() {
-        activity.fab.setImageResource(R.drawable.ic_action_remove)
-        activity.fab.setOnClickListener {
-            val deleteFromDatabaseTask = DeleteFromDatabaseTask(mContext, adapter, object: TaskCallback{
-                override fun onTaskFinished() {
-                    loadToGrid()
-                }
+        fab?.apply {
+            setImageResource(R.drawable.ic_action_remove)
+            setOnClickListener {
+                val deleteFromDatabaseTask = DeleteFromDatabaseTask(mContext, adapter, object : TaskCallback {
+                    override fun onTaskFinished() {
+                        loadToGrid()
+                    }
 
-            })
-            deleteFromDatabaseTask.execute(mAdapter!!.selectedItems)
-            finishSelectionMode()
+                })
+                deleteFromDatabaseTask.execute(mAdapter!!.selectedItems)
+                finishSelectionMode()
+            }
+
         }
     }
 
@@ -113,35 +118,41 @@ class MainFragment : Fragment(), OnItemInteractionListener {
     private lateinit var mHandler: Handler
     fun loadToGrid() {
         mHandler = Handler()
-        swipeRefresh.isRefreshing = true
+        binding.swipeRefresh.isRefreshing = true
         try {
             mAdapter = ImagesRecyclerViewAdapter(
                     mContext, mHelper!!.getImagePaths(mHelper?.filterTag, mHelper!!.sortOrder), this)
             mCallbacks.onLoadToGrid()
-            TransitionManager.beginDelayedTransition(swipeRefresh, Fade(Fade.OUT))
-            images_list.visibility = View.INVISIBLE
-            val gridLayoutManager = GridLayoutManager(mContext, spanCount,
-                    LinearLayoutManager.VERTICAL, false)
-            images_list.layoutManager = gridLayoutManager
-            images_list.adapter = mAdapter
-            images_list.itemAnimator = DefaultItemAnimator()
-            images_list.setHasFixedSize(true)
-            val recyclerFastScroller = mFragmentView.findViewById<View>(R.id.fast_scroller) as RecyclerFastScroller
-            recyclerFastScroller.attachRecyclerView(images_list)
+            TransitionManager.beginDelayedTransition(binding.swipeRefresh, Fade(Fade.OUT))
+            binding.imagesList.apply {
+                visibility = View.INVISIBLE
+                val gridLayoutManager = GridLayoutManager(mContext, spanCount,
+                        LinearLayoutManager.VERTICAL, false)
+                layoutManager = gridLayoutManager
+                adapter = mAdapter
+                itemAnimator = DefaultItemAnimator()
+                setHasFixedSize(true)
+            }
 
-            activity.toolbar_layout.title = mHelper?.filterTag
-            activity.toolbar_layout.setStatusBarScrimColor(resources.getColor(android.R.color.transparent))
-            activity.toolbar_layout.setContentScrimColor(resources.getColor(R.color.scrim_color))
 
-            images_list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+            val recyclerFastScroller = binding.fastScroller
+            recyclerFastScroller.attachRecyclerView(binding.imagesList)
+
+            activity?.find<CollapsingToolbarLayout>(R.id.toolbar_layout)?.apply {
+                title = mHelper?.filterTag
+                setStatusBarScrimColor(resources.getColor(android.R.color.transparent))
+                setContentScrimColor(resources.getColor(R.color.scrim_color))
+            }
+
+            binding.imagesList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy > 0) {
                         if (fab!!.isShown) {
-                            fab.hide()
+                            fab?.hide()
                         }
                     } else if (dy < 0) {
                         if (!fab!!.isShown) {
-                            fab.show()
+                            fab?.show()
                         }
                     }
                     super.onScrolled(recyclerView, dx, dy)
@@ -154,18 +165,18 @@ class MainFragment : Fragment(), OnItemInteractionListener {
             Helper(mContext).showToast("Opps! Some Error Occurred")
         } finally {
             mHandler.postDelayed({
-                swipeRefresh.isRefreshing = false
-                TransitionManager.beginDelayedTransition(swipeRefresh, Fade(Fade.IN))
-                val noImages = mFragmentView.findViewById<View>(R.id.text_no_images) as TextView
+                binding.swipeRefresh.isRefreshing = false
+                TransitionManager.beginDelayedTransition(binding.swipeRefresh, Fade(Fade.IN))
+                val noImages = binding.textNoImages
                 try {
                     if (mAdapter!!.values.isEmpty()) {
                         noImages.visibility = View.VISIBLE
                         noImages.text = String.format("No Images in %s ", mHelper?.filterTag)
-                        images_list.visibility = View.INVISIBLE
-                        fab.show()
+                        binding.imagesList.visibility = View.INVISIBLE
+                        fab?.show()
                     } else {
                         noImages.visibility = View.INVISIBLE
-                        images_list.visibility = View.VISIBLE
+                        binding.imagesList.visibility = View.VISIBLE
                     }
                 } catch (ignored: Exception) {
 
@@ -175,9 +186,9 @@ class MainFragment : Fragment(), OnItemInteractionListener {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (requestCode == Helper.Companion.REQUEST_CODE_IMAGE_VIEWER && resultCode == RESULT_OK) {
-            images_list.scrollToPosition(data.extras!!.getInt(Helper.Companion.EXTRA_GOTO_RECYCLER_POS, 0))
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == Helper.REQUEST_CODE_IMAGE_VIEWER && resultCode == RESULT_OK) {
+            binding.imagesList.scrollToPosition(data?.extras!!.getInt(Helper.EXTRA_GOTO_RECYCLER_POS, 0))
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
@@ -197,14 +208,18 @@ class MainFragment : Fragment(), OnItemInteractionListener {
         if (!isInSelectionMode) {
             isInSelectionMode = true
         }
-        swipeRefresh.isEnabled = false
+        binding.swipeRefresh.isEnabled = false
         setFabAsRemove()
 
         ObjectAnimator.ofFloat(mArrowDrawable, "progress", 1.toFloat()).start()
 
-        toolbar.navigationIcon = mArrowDrawable
-        toolbar.setNavigationOnClickListener { finishSelectionMode() }
-        toolbar.subtitle = mAdapter!!.selectedItemsCount.toString() + "selected"
+        val toolbar = activity?.find<Toolbar>(R.id.toolbar)
+        toolbar?.apply {
+            navigationIcon = mArrowDrawable
+            setNavigationOnClickListener { finishSelectionMode() }
+            subtitle = mAdapter!!.selectedItemsCount.toString() + "selected"
+
+        }
         mCallbacks.onSelectionModeStart()
     }
 
@@ -212,14 +227,16 @@ class MainFragment : Fragment(), OnItemInteractionListener {
         if (isInSelectionMode) {
             isInSelectionMode = false
         }
-        swipeRefresh.isEnabled = true
+        binding.swipeRefresh.isEnabled = true
         setFabAsAdd()
         ObjectAnimator.ofFloat(mArrowDrawable, "progress", 0.toFloat()).start()
 
-        activity.toolbar_layout.title = mHelper?.filterTag
+        activity?.find<CollapsingToolbarLayout>(R.id.toolbar_layout)?.title = mHelper?.filterTag
 
         mAdapter!!.clearSelection()
-        toolbar.setNavigationOnClickListener { drawer_layout.openDrawer(GravityCompat.START) }
+        activity?.find<Toolbar>(R.id.toolbar)?.setNavigationOnClickListener {
+            activity?.find<DrawerLayout>(R.id.drawer_layout)?.openDrawer(GravityCompat.START)
+        }
         mCallbacks.onSelectionModeFinish()
 
     }
@@ -231,7 +248,7 @@ class MainFragment : Fragment(), OnItemInteractionListener {
         if (count == 0) {
             finishSelectionMode()
         } else {
-            activity.toolbar_layout.title = count.toString() + " selected"
+            activity?.find<Toolbar>(R.id.toolbar_layout)?.title = "$count selected"
         }
         mAdapter!!.notifyItemChanged(position)
     }
@@ -252,7 +269,7 @@ class MainFragment : Fragment(), OnItemInteractionListener {
     private inner class ImagePickListener : Picker.PickListener {
 
         override fun onPickedSuccessfully(images: ArrayList<ImageEntry>) {
-            val addToVaultTask = AddToDatabaseTask(mContext, object: TaskCallback {
+            val addToVaultTask = AddToDatabaseTask(mContext, object : TaskCallback {
                 override fun onTaskFinished() {
                     loadToGrid()
                 }

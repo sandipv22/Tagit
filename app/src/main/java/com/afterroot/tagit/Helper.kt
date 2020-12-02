@@ -1,17 +1,19 @@
 package com.afterroot.tagit
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.os.Environment
-import android.preference.PreferenceManager
-import android.support.design.widget.Snackbar
+import com.google.android.material.snackbar.Snackbar
 import android.view.View
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import java.io.File
 import java.util.*
 
+@SuppressLint("CommitPrefEdits")
 class Helper constructor(private val mContext: Context) {
 
     val sharedPreferences: SharedPreferences
@@ -25,7 +27,7 @@ class Helper constructor(private val mContext: Context) {
     val tagItPath: String
         get() = String.format("%s%s", Environment.getExternalStorageDirectory().path, mContext.getString(R.string.photos_path))
 
-    var filterTag: String
+    var filterTag: String?
         get() = sharedPreferences.getString(mContext.getString(R.string.key_filter_tag), "")
         set(tag) = mEditor.putString(mContext.getString(R.string.key_filter_tag), tag).apply()
 
@@ -46,7 +48,7 @@ class Helper constructor(private val mContext: Context) {
             }
             cursor.close()
             database!!.close()
-            Collections.sort(list)
+            list.sort()
             return list
         }
 
@@ -66,13 +68,13 @@ class Helper constructor(private val mContext: Context) {
         cursor.close()
         database!!.close()
         if (sortBy == SORT_BY_DATE) {
-            Collections.sort(list) { lhs, rhs ->
+            list.sortWith { lhs, rhs ->
                 val rhF = File(rhs)
                 val lhF = File(lhs)
-                java.lang.Long.valueOf(rhF.lastModified())!!.compareTo(lhF.lastModified())
+                java.lang.Long.valueOf(rhF.lastModified()).compareTo(lhF.lastModified())
             }
         } else if (sortBy == SORT_BY_NAME) {
-            Collections.sort(list)
+            list.sort()
         }
         return list
     }
@@ -105,11 +107,11 @@ class Helper constructor(private val mContext: Context) {
     }
 
     companion object {
-        var ADD_NOTI_ID = 7865
-        var SORT_BY_NAME = 0
-        val SORT_BY_DATE = 1
-        val REQUEST_CODE_IMAGE_VIEWER = 5464
-        var EXTRA_VIEWPAGER_POS = "viewpager_position"
-        var EXTRA_GOTO_RECYCLER_POS = "goto_recycler"
+        const val ADD_NOTI_ID = 7865
+        const val SORT_BY_NAME = 0
+        const val SORT_BY_DATE = 1
+        const val REQUEST_CODE_IMAGE_VIEWER = 5464
+        const val EXTRA_VIEWPAGER_POS = "viewpager_position"
+        const val EXTRA_GOTO_RECYCLER_POS = "goto_recycler"
     }
 }

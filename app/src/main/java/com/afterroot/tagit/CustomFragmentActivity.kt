@@ -1,11 +1,8 @@
 package com.afterroot.tagit
 
-import android.app.Fragment
-import android.app.FragmentManager
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
-
+import androidx.appcompat.app.AppCompatActivity
 import com.afterroot.tagit.fragment.MainFragment
 import com.afterroot.tagit.fragment.SettingsFragment
 
@@ -27,26 +24,26 @@ class CustomFragmentActivity : AppCompatActivity() {
         }
     }
 
-    private val fragmentTitle: String
+    private val fragmentTitle: String?
         get() = intent.getStringExtra(getString(R.string.key_fragment_title))
 
     private val fragmentId: Int
         get() {
             val extra = intent.getIntExtra(getString(R.string.key_fragment_id), 0)
-            Log.d(getString(R.string.key_fragment_id), "id: " + extra)
+            Log.d(getString(R.string.key_fragment_id), "id: $extra")
             return extra
         }
 
-    private var mFragmentManager: FragmentManager? = null
-    private fun setFragment(fragment: Fragment) {
+    private var mFragmentManager: androidx.fragment.app.FragmentManager? = null
+    private fun setFragment(fragment: androidx.fragment.app.Fragment) {
         if (mFragmentManager == null) {
-            mFragmentManager = fragmentManager
+            mFragmentManager = supportFragmentManager
         }
         mFragmentManager!!.beginTransaction().replace(R.id.content_custom_fragment, fragment).commit()
     }
 
     companion object {
-        val SETTINGS_FRAGMENT = 2
-        val MAIN_FRAGMENT = 1
+        const val SETTINGS_FRAGMENT = 2
+        const val MAIN_FRAGMENT = 1
     }
 }

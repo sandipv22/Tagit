@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.os.AsyncTask
-import android.support.v4.app.NotificationCompat
+import androidx.core.app.NotificationCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afterroot.tagit.*
 import net.yazeed44.imagepicker.model.ImageEntry
